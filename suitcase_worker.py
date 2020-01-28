@@ -63,7 +63,7 @@ def factory(name, start_doc):
                                                        #'{event[data][en_energy]:.2f}eV-'
                                                        ),
                                           directory=USERDIR)
-    name, doc = SWserializer(name,doc)
+    name, doc = SWserializer(name, start_doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
                                                 '{start[cycle]}_'
                                                 '{start[institution]}_'
