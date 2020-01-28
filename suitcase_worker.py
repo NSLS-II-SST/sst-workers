@@ -143,11 +143,11 @@ import suitcase.jsonl
 def factory2(name, start_doc):
     dt = datetime.datetime.now()
     formatted_date = dt.strftime('%Y-%m-%d')
-    with suitcase.jsonl.Serializer(file_prefix=('{start[cycle]}/'
-                                                '{start[cycle]}_'
-                                                '{start[institution]}_'
-                                                '{start[user_name]}/'
-                                                '{start[project_name]}/'
+    with suitcase.jsonl.Serializer(file_prefix=('{cycle}/'
+                                                '{cycle}_'
+                                                '{institution}_'
+                                                '{user_name}/'
+                                                '{project_name}/'
                                                 f'{formatted_date}/'
                                                 '{scan_id}/'
                                                 '{scan_id}-'
