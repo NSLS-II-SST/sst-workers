@@ -14,8 +14,8 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_saxs_image-2.tiff'),
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
-from event_model import Filler, RunRouter
-from suitcase import tiff_series,csv
+from event_model import RunRouter
+from suitcase import tiff_series, csv
 import suitcase.jsonl
 import datetime
 from bluesky_darkframes import DarkSubtraction
@@ -29,10 +29,24 @@ dispatcher = RemoteDispatcher('localhost:5578')
 
 
 def factory(name, start_doc):
-    filler = Filler({'AD_TIFF': databroker.assets.handlers.AreaDetectorTiffHandler})
     dt = datetime.datetime.now()
     formatted_date = dt.strftime('%Y-%m-%d')
-    name, doc = filler(name, start_doc)  # modifies doc in place
+    with suitcase.jsonl.Serializer(file_prefix=('{cycle}/'
+                                                '{cycle}_'
+                                                '{institution}_'
+                                                '{user_name}/'
+                                                '{project_name}/'
+                                                f'{formatted_date}/'
+                                                '{scan_id}/'
+                                                '{scan_id}-'
+                                                '{sample_name}-'
+                                                ),
+                                   directory=USERDIR,
+                                   sort_keys=True,
+                                   indent=2) as serializer:
+        serializer(name, start_doc)
+        # The jsonl Serializer just needs the start doc, so we are done with
+        # it now.
     SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
     WAXS_sync_subtractor = DarkSubtraction('Synced_waxs_image')
     SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
@@ -64,25 +78,22 @@ def factory(name, start_doc):
                                    line_terminator='\n')
 
     def fill_subtract_and_serialize(swname, swdoc):
-        swname, swdoc = filler(swname, swdoc)
         swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
     def fill_subtract_and_serialize_saxs(swname, swdoc):
-        swname, swdoc = filler(swname, swdoc)
         swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
     def fill_subtract_and_serialize_waxs(swname, swdoc):
-        swname, swdoc = filler(swname, swdoc)
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
 
     def subfactory(dname, descriptor_doc):
-        dname, ddoc = filler(dname, descriptor_doc)
+        dname, ddoc = dname, descriptor_doc
         if ddoc['name'] in ['primary', 'dark']:
             returnlist = []
             if 'Synced' in start_doc['detectors']:
@@ -106,7 +117,6 @@ def factory(name, start_doc):
             if descriptor_doc['name'] == 'primary':
                 serializercsv('start', start_doc)
                 serializercsv('descriptor', descriptor_doc)
-                returnlist.append(filler)
                 returnlist.append(serializercsv)
             return returnlist
         elif 'baseline' in descriptor_doc['name'] or 'monitor' in descriptor_doc['name']:
@@ -129,7 +139,7 @@ def factory(name, start_doc):
                                         line_terminator='\n')
             serializer('start', start_doc)
             serializer('descriptor', descriptor_doc)
-            return [filler,serializer]
+            return [serializer]
         else:
             return []
 
@@ -140,28 +150,7 @@ import event_model
 import suitcase.jsonl
 
 
-def factory2(name, start_doc):
-    dt = datetime.datetime.now()
-    formatted_date = dt.strftime('%Y-%m-%d')
-    with suitcase.jsonl.Serializer(file_prefix=('{cycle}/'
-                                                '{cycle}_'
-                                                '{institution}_'
-                                                '{user_name}/'
-                                                '{project_name}/'
-                                                f'{formatted_date}/'
-                                                '{scan_id}/'
-                                                '{scan_id}-'
-                                                '{sample_name}-'
-                                                ),
-                                   directory=USERDIR,
-                                   sort_keys=True,
-                                   indent=2) as serializer:
-        serializer(name, start_doc)
-    # We do not need any further documents from the RunRouter.
-    return [], []
-
-
-# rr = RunRouter([factory, factory2])
-rr = RunRouter([factory, factory2])
+handler_registry = {'AD_TIFF': databroker.assets.handlers.AreaDetectorTiffHandler}
+rr = RunRouter([factory], handler_registry=handler_registry)
 rr_token = dispatcher.subscribe(rr)
 dispatcher.start()
