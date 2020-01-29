@@ -14,6 +14,7 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_saxs_image-2.tiff'),
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
+import collections
 from event_model import DocumentRouter, RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
@@ -37,12 +38,19 @@ dispatcher = RemoteDispatcher('localhost:5578')
 
 
 class Composer(DocumentRouter):
-    def __init__(self, metadata, callback):
+    def __init__(self, fields, metadata, callback):
+        self.fields = fields
         self.metadata = metadata
         self.callback = callback
         self._bundle = None
+        # Map original_descriptor_uid -> descriptor_bundle
         self._descriptor_bundles = {}
+        # Map original_resource_uid -> resource_bundle
         self._resource_bundles = {}
+        # Nested dict:
+        # Map original_descriptor uid ->
+        #     mapping of field to resource_bundle.
+        self._new_resource_bundles = collections.defaultdict(dict)
 
     def start(self, doc):
         new_doc = dict(doc)
@@ -58,23 +66,26 @@ class Composer(DocumentRouter):
         new_doc = dict(doc)
         new_doc.pop('run_start')
         original_uid = new_doc.pop('uid')
+        for field in self.fields:
+            if field in doc['data_keys']:
+                new_doc['data_keys'][field]['external'] = 'FILESTORE:'
+                resource_bundle = self._bundle.compose_resource(
+                    ...)
+                self._new_resource_bundles[original_uid][key] = resource_bundle
         descriptor_bundle = self._bundle.compose_descriptor(**new_doc)
         self._descriptor_bundles[original_uid] = descriptor_bundle
         self._emit('descriptor', descriptor_bundle.descriptor_doc)
-
-    def event_page(self, doc):
-        new_doc = dict(doc)
-        original_descriptor_uid = new_doc.pop('descriptor')
-        new_doc.pop('uid')
-        descriptor_bundle = self._descriptor_bundles[original_descriptor_uid]
-        event_page = descriptor_bundle.compose_event_page(**new_doc)
-        self._emit('event_page', event_page)
 
     def event(self, doc):
         new_doc = dict(doc)
         original_descriptor_uid = new_doc.pop('descriptor')
         new_doc.pop('uid')
         descriptor_bundle = self._descriptor_bundles[original_descriptor_uid]
+        for field, resource_bundle in self._new_resource_bundles[original_descriptor_uid].items():
+            image = new_doc['data'][field]
+            # TODO Write data to file.
+            datum_doc = resource_bundle.compose_datum(...)
+            new_doc['data'][field] = datum_doc['datum_id']
         event = descriptor_bundle.compose_event(**new_doc)
         self._emit('event', event)
 
