@@ -16,7 +16,7 @@ Out[20]:
 """
 import collections
 import uuid
-from event_model import DocumentRouter, RunRouter
+from event_model import compose_run, DocumentRouter, RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
 import datetime
