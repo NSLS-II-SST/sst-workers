@@ -15,6 +15,7 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
 import collections
+import uuid
 from event_model import DocumentRouter, RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
@@ -29,8 +30,8 @@ USERDIR = '/DATA/users/'
 mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
 # These are parameters to pass to suitcase.mongo_normalized.Serializer.
 ANALYSIS_DB = {
-    'metadatastore_db': mongo_client.get_database('rsoxs-metadata-store'),
-    'asset_registry_db': mongo_client.get_database('rsoxs-assets-store')
+    'metadatastore_db': mongo_client.get_database('rsoxs-analysis-metadata-store'),
+    'asset_registry_db': mongo_client.get_database('rsoxs-analysis-assets-store')
 }
 
 
@@ -69,8 +70,13 @@ class Composer(DocumentRouter):
         for field in self.fields:
             if field in doc['data_keys']:
                 new_doc['data_keys'][field]['external'] = 'FILESTORE:'
+                file_stem = str(uuid.uuid4())
                 resource_bundle = self._bundle.compose_resource(
-                    ...)
+                    spec="NPY_SEQ",
+                    root="/DATA/images/dark_subtraction_test",
+                    resource_path=file_stem,
+                    resource_kwargs={},
+                    path_semantics='posix')
                 self._new_resource_bundles[original_uid][key] = resource_bundle
         descriptor_bundle = self._bundle.compose_descriptor(**new_doc)
         self._descriptor_bundles[original_uid] = descriptor_bundle
@@ -83,7 +89,14 @@ class Composer(DocumentRouter):
         descriptor_bundle = self._descriptor_bundles[original_descriptor_uid]
         for field, resource_bundle in self._new_resource_bundles[original_descriptor_uid].items():
             image = new_doc['data'][field]
-            # TODO Write data to file.
+            index = doc['seq_num']
+            filepath = f"{resource_bundle.resource_doc['resource_path']}_{index}.npy"
+            numpy.save(filepath, image, allow_pickle=False)
+            datum = dict(
+                resource=resource_bundle.resource_doc['uid'],
+                datum_id=f"{resource_bundle.resource_doc['uid']}/{index}",
+                datum_kwargs={'index': index})
+            self._emit('datum', datum)
             datum_doc = resource_bundle.compose_datum(...)
             new_doc['data'][field] = datum_doc['datum_id']
         event = descriptor_bundle.compose_event(**new_doc)
@@ -160,7 +173,11 @@ def factory(name, start_doc):
                                           directory=USERDIR)
     name, doc = SWserializer(name, start_doc)
     mongo_serializer = suitcase.mongo_normalized.Serializer(**ANALYSIS_DB)
-    make_analysis_documents = Composer({}, mongo_serializer)
+    fields = ['Synced_saxs_image',
+              'Synced_waxs_image',
+              'Small Angle CCD Detector_image',
+              'Wide Angle CCD Detector_image']
+    make_analysis_documents = Composer(fields, {}, mongo_serializer)
     make_analysis_documents(name, doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
                                                 '{start[cycle]}_'
