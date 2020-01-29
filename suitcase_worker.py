@@ -23,6 +23,7 @@ import datetime
 from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
 import databroker.assets.handlers
+import numpy
 import pymongo
 
 USERDIR = '/DATA/users/'
