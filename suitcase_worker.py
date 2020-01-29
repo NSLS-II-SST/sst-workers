@@ -92,12 +92,8 @@ class Composer(DocumentRouter):
             index = doc['seq_num']
             filepath = f"{resource_bundle.resource_doc['resource_path']}_{index}.npy"
             numpy.save(filepath, image, allow_pickle=False)
-            datum = dict(
-                resource=resource_bundle.resource_doc['uid'],
-                datum_id=f"{resource_bundle.resource_doc['uid']}/{index}",
-                datum_kwargs={'index': index})
-            self._emit('datum', datum)
-            datum_doc = resource_bundle.compose_datum(...)
+            datum_doc = resource_bundle.compose_datum(datum_kwargs={'index': index})
+            self._emit('datum', datum_doc)
             new_doc['data'][field] = datum_doc['datum_id']
         event = descriptor_bundle.compose_event(**new_doc)
         self._emit('event', event)
