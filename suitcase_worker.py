@@ -14,18 +14,102 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_saxs_image-2.tiff'),
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
-from event_model import RunRouter
+from event_model import DocumentRouter, RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
 import datetime
 from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
 import databroker.assets.handlers
+import pymongo
 
 USERDIR = '/DATA/users/'
 
+mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
+# These are parameters to pass to suitcase.mongo_normalized.Serializer.
+ANALYSIS_DB = {
+    'metadatastore_db': mongo_client.get_database('rsoxs-metadata-store'),
+    'asset_registry_db': mongo_client.get_database('rsoxs-assets-store')
+}
+
 
 dispatcher = RemoteDispatcher('localhost:5578')
+
+
+class Composer(DocumentRouter):
+    def __init__(self, metadata, callback):
+        self.metadata = metadata
+        self.callback = callback
+        self._bundle = None
+        self._descriptor_bundles = {}
+        self._resource_bundles = {}
+
+    def start(self, doc):
+        new_doc = dict(doc)
+        # Let compose_run assign a new uid. Place the original uid as
+        # 'parent_uid'.
+        uid = new_doc.pop('uid')
+        new_doc['parent_uid'] = uid
+        new_doc.update(self.metadata)
+        self._bundle = compose_run(**new_doc)
+        self._emit('start', self._bundle.start_doc)
+
+    def descriptor(self, doc):
+        new_doc = dict(doc)
+        new_doc.pop('run_start')
+        original_uid = new_doc.pop('uid')
+        descriptor_bundle = self._bundle.compose_descriptor(**new_doc)
+        self._descriptor_bundles[original_uid] = descriptor_bundle
+        self._emit('descriptor', descriptor_bundle.descriptor_doc)
+
+    def event_page(self, doc):
+        new_doc = dict(doc)
+        original_descriptor_uid = new_doc.pop('descriptor')
+        new_doc.pop('uid')
+        descriptor_bundle = self._descriptor_bundles[original_descriptor_uid]
+        event_page = descriptor_bundle.compose_event_page(**new_doc)
+        self._emit('event_page', event_page)
+
+    def event(self, doc):
+        new_doc = dict(doc)
+        original_descriptor_uid = new_doc.pop('descriptor')
+        new_doc.pop('uid')
+        descriptor_bundle = self._descriptor_bundles[original_descriptor_uid]
+        event = descriptor_bundle.compose_event(**new_doc)
+        self._emit('event', event)
+
+    def resource(self, doc):
+        new_doc = dict(doc)
+        new_doc.pop('run_start')
+        original_uid = new_doc.pop('uid')
+        resource_bundle = self._bundle.compose_resource(**new_doc)
+        self._resource_bundles[original_uid] = resource_bundle
+        self._emit('resource', resource_bundle.resource_doc)
+
+    def datum_page(self, doc):
+        new_doc = dict(doc)
+        original_resource_uid = new_doc.pop('resource')
+        new_doc.pop('datum_id')
+        resource_bundle = self._resource_bundles[original_resource_uid]
+        datum_page = resource_bundle.compose_datum_page(**new_doc)
+        self._emit('datum_page', datum_page)
+
+    def datum(self, doc):
+        new_doc = dict(doc)
+        original_resource_uid = new_doc.pop('resource')
+        new_doc.pop('datum_id')
+        resource_bundle = self._resource_bundles[original_resource_uid]
+        datum = resource_bundle.compose_datum(**new_doc)
+        self._emit('datum', datum)
+
+    def stop(self, doc):
+        new_doc = dict(doc)
+        new_doc.pop('run_start')
+        stop_doc = self._bundle.compose_stop(**new_doc)
+        self._emit('stop', stop_doc)
+
+    def _emit(self, name, doc):
+        self.callback(name, doc)
 
 
 def factory(name, start_doc):
@@ -64,6 +148,9 @@ def factory(name, start_doc):
                                                        ),
                                           directory=USERDIR)
     name, doc = SWserializer(name, start_doc)
+    mongo_serializer = suitcase.mongo_normalized.Serializer(**ANALYSIS_DB)
+    make_analysis_documents = Composer({}, mongo_serializer)
+    make_analysis_documents(name, doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
                                                 '{start[cycle]}_'
                                                 '{start[institution]}_'
@@ -83,14 +170,18 @@ def factory(name, start_doc):
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
+        make_analysis_documents(swname, swdoc)
+
     def fill_subtract_and_serialize_saxs(swname, swdoc):
         swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
+        make_analysis_documents(swname, swdoc)
     def fill_subtract_and_serialize_waxs(swname, swdoc):
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
+        make_analysis_documents(swname, swdoc)
 
     def subfactory(dname, descriptor_doc):
         dname, ddoc = dname, descriptor_doc
@@ -102,16 +193,19 @@ def factory(name, start_doc):
                 dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
                 dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
+                make_analysis_documents(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif 'Small Angle CCD Detector' in start_doc['detectors']:
                 name, doc = SAXS_subtractor('start', start_doc)
                 dname, ddoc = SAXS_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
+                make_analysis_documents(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif 'Wide Angle CCD Detector' in start_doc['detectors']:
                 name, doc = WAXS_subtractor('start', start_doc)
                 dname, ddoc = WAXS_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
+                make_analysis_documents(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc['name'] == 'primary':
