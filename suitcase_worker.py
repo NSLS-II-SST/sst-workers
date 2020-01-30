@@ -80,7 +80,8 @@ class Composer(DocumentRouter):
                     resource_path=file_stem,
                     resource_kwargs={},
                     path_semantics='posix')
-                self._new_resource_bundles[original_uid][key] = resource_bundle
+                self._emit('resource', resource_bundle.resource_doc)
+                self._new_resource_bundles[original_uid][field] = resource_bundle
         descriptor_bundle = self._bundle.compose_descriptor(**new_doc)
         self._descriptor_bundles[original_uid] = descriptor_bundle
         self._emit('descriptor', descriptor_bundle.descriptor_doc)
