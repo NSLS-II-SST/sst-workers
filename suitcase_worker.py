@@ -242,25 +242,23 @@ def factory(name, start_doc):
                 dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
                 dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
-                make_analysis_documents(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif 'Small Angle CCD Detector' in start_doc['detectors']:
                 name, doc = SAXS_subtractor('start', start_doc)
                 dname, ddoc = SAXS_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
-                make_analysis_documents(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif 'Wide Angle CCD Detector' in start_doc['detectors']:
                 name, doc = WAXS_subtractor('start', start_doc)
                 dname, ddoc = WAXS_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
-                make_analysis_documents(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc['name'] == 'primary':
                 serializercsv('start', start_doc)
                 serializercsv('descriptor', descriptor_doc)
                 returnlist.append(serializercsv)
+            make_analysis_documents(dname, ddoc)
             return returnlist
         elif 'baseline' in descriptor_doc['name'] or 'monitor' in descriptor_doc['name']:
             dt = datetime.datetime.now()
@@ -282,8 +280,10 @@ def factory(name, start_doc):
                                         line_terminator='\n')
             serializer('start', start_doc)
             serializer('descriptor', descriptor_doc)
+            make_analysis_documents(dname, ddoc)
             return [serializer]
         else:
+            make_analysis_documents(dname, ddoc)
             return []
 
     return [], [subfactory]
