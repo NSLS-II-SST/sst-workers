@@ -15,6 +15,9 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
 import collections
+import os.path
+from pprint import pformat
+import sys
 import uuid
 from event_model import compose_run, DocumentRouter, EventModelError, RunRouter
 from suitcase import tiff_series, csv
