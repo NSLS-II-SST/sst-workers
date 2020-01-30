@@ -94,7 +94,10 @@ class Composer(DocumentRouter):
         for field, resource_bundle in self._new_resource_bundles[original_descriptor_uid].items():
             image = new_doc['data'][field]
             index = doc['seq_num']
-            filepath = f"{resource_bundle.resource_doc['resource_path']}_{index}.npy"
+            filepath = \
+                Path(f"{resource_bundle.resource_doc['root']}") / \
+                Path(f"{resource_bundle.resource_doc['resource_path']}_{index}.npy")
+            print(f"saving to {filepath}", file=sys.stderr)
             numpy.save(filepath, image, allow_pickle=False)
             datum_doc = resource_bundle.compose_datum(datum_kwargs={'index': index})
             self._emit('datum', datum_doc)
