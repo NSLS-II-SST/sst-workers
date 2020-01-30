@@ -60,9 +60,10 @@ class Composer(DocumentRouter):
         # Let compose_run assign a new uid. Place the original uid as
         # 'parent_uid'.
         uid = new_doc.pop('uid')
+        time_ = new_doc.pop('time')
         new_doc['parent_uid'] = uid
         new_doc.update(self.metadata)
-        self._bundle = compose_run(**new_doc)
+        self._bundle = compose_run(time=time_, metadata=new_doc)
         self._emit('start', self._bundle.start_doc)
 
     def descriptor(self, doc):
