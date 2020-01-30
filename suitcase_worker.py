@@ -19,6 +19,7 @@ import uuid
 from event_model import compose_run, DocumentRouter, RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
+import suitcase.mongo_normalized
 import datetime
 from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
