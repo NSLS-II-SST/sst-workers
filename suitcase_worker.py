@@ -16,7 +16,7 @@ Out[20]:
 """
 import collections
 import uuid
-from event_model import compose_run, DocumentRouter, RunRouter
+from event_model import compose_run, DocumentRouter, EventModelError, RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
 import suitcase.mongo_normalized
@@ -128,8 +128,13 @@ class Composer(DocumentRouter):
     def stop(self, doc):
         new_doc = dict(doc)
         new_doc.pop('run_start')
-        stop_doc = self._bundle.compose_stop(**new_doc)
-        self._emit('stop', stop_doc)
+        new_doc.pop('num_events')
+        try:
+            stop_doc = self._bundle.compose_stop(**new_doc)
+        except EventModelError as e:
+            print(f"no extra stop docs, please")
+        else:
+            self._emit('stop', stop_doc)
 
     def _emit(self, name, doc):
         self.callback(name, doc)
