@@ -147,14 +147,14 @@ class Composer(DocumentRouter):
         self.callback(name, doc)
 
 
-class SignedDarkSubtraction(DarkSubtraction):
-    # Override the nonzero default value of pedestal.
-    def __init__(*args, pedestal=0, **kwargs):
-        super().__init__(*args, pedestal=pedestal, **kwargs)
-
-    def subtract(self, light, dark):
-        # Subtract as signed int.
-        return light.astype('int') - dark
+#class SignedDarkSubtraction(DarkSubtraction):
+#    # Override the nonzero default value of pedestal.
+#    def __init__(*args, pedestal=0, **kwargs):
+#        super().__init__(*args, pedestal=pedestal, **kwargs)
+#
+#    def subtract(self, light, dark):
+#        # Subtract as signed int.
+#        return light.astype('int') - dark
 
 
 def factory(name, start_doc):
@@ -176,14 +176,14 @@ def factory(name, start_doc):
         serializer(name, start_doc)
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
-    SAXS_sync_subtractor = SignedDarkSubtraction('Synced_saxs_image')
-    WAXS_sync_subtractor = SignedDarkSubtraction('Synced_waxs_image')
-    SAXS_subtractor = SignedDarkSubtraction('Small Angle CCD Detector_image')
-    WAXS_subtractor = SignedDarkSubtraction('Wide Angle CCD Detector_image')
+    SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
+    WAXS_sync_subtractor = DarkSubtraction('Synced_waxs_image')
+    SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
+    WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
     SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
                                                        '{start[cycle]}_'
-						       '{start[institution]}_'
-						       '{start[user_name]}/'
+						                               '{start[institution]}_'
+						                               '{start[user_name]}/'
                                                        '{start[project_name]}/'
                                                        f'{formatted_date}/'
                                                        '{start[scan_id]}/'
