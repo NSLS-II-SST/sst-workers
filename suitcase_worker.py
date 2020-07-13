@@ -293,6 +293,8 @@ def factory(name, start_doc):
                     ),
                     directory=USERDIR,
                 )
+                returnlist.append(nxsas_serializer)
+
             make_analysis_documents(dname, ddoc)
 
             return returnlist
