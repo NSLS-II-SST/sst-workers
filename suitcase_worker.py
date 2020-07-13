@@ -304,8 +304,9 @@ def factory(name, start_doc):
                 flush=True,
                 line_terminator="\n",
             )
-            serializer("start", start_doc)
-            serializer("descriptor", descriptor_doc)
+            # jlynch 2020/07/13
+            # serializer("start", start_doc)
+            # serializer("descriptor", descriptor_doc)
             make_analysis_documents(dname, ddoc)
             return [serializer]
         else:
