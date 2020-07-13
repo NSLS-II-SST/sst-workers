@@ -278,8 +278,8 @@ def factory(name, start_doc):
                 returnlist.append(serializercsv)
             
                 ## de-indented this and copied it below at original indentation: make_analysis_documents(dname, ddoc)
-                dt = datetime.datetime.now()
-                formatted_date = dt.strftime("%Y-%m-%d")
+                dt2 = datetime.datetime.now()
+                formatted_date2 = dt2.strftime("%Y-%m-%d")
                 nxsas_serializer = suitcase.nxsas.Serializer(
                     file_prefix=(
                         "{cycle}/"
@@ -287,7 +287,7 @@ def factory(name, start_doc):
                         "{institution}_"
                         "{user_name}/"
                         "{project_name}/"
-                        f"{formatted_date}/"
+                        f"{formatted_date2}/"
                         "{scan_id}/"
                         "{scan_id}-"
                         "{sample_name}-"
@@ -302,8 +302,8 @@ def factory(name, start_doc):
         elif (
             "baseline" in descriptor_doc["name"] or "monitor" in descriptor_doc["name"]
         ):
-            dt = datetime.datetime.now()
-            formatted_date = dt.strftime("%Y-%m-%d")
+            dt3 = datetime.datetime.now()
+            formatted_date = dt3.strftime("%Y-%m-%d")
             # energy = hdr.table(stream_name='baseline')['Beamline Energy_energy'][1]
             serializer = csv.Serializer(
                 file_prefix=(
