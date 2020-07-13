@@ -273,8 +273,9 @@ def factory(name, start_doc):
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc["name"] == "primary":
-                serializercsv("start", start_doc)
-                serializercsv("descriptor", descriptor_doc)
+                # jlynch 2020/07/13
+                # serializercsv("start", start_doc)
+                # serializercsv("descriptor", descriptor_doc)
                 returnlist.append(serializercsv)
             
             make_analysis_documents(dname, ddoc)
