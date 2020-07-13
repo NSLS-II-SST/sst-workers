@@ -278,7 +278,7 @@ def factory(name, start_doc):
                 returnlist.append(serializercsv)
             
                 ## de-indented this and copied it below at original indentation: make_analysis_documents(dname, ddoc)
-
+                formatted_date = dt.strftime("%Y-%m-%d")
                 nxsas_serializer = suitcase.nxsas.Serializer(
                     file_prefix=(
                         "{cycle}/"
