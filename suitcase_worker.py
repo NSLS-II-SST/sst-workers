@@ -277,25 +277,6 @@ def factory(name, start_doc):
                 serializercsv("descriptor", descriptor_doc)
                 returnlist.append(serializercsv)
             
-                ## de-indented this and copied it below at original indentation: make_analysis_documents(dname, ddoc)
-                dt2 = datetime.datetime.now()
-                formatted_date2 = dt2.strftime("%Y-%m-%d")
-                nxsas_serializer = suitcase.nxsas.Serializer(
-                    file_prefix=(
-                        "{cycle}/"
-                        "{cycle}_"
-                        "{institution}_"
-                        "{user_name}/"
-                        "{project_name}/"
-                        f"{formatted_date2}/"
-                        "{scan_id}/"
-                        "{scan_id}-"
-                        "{sample_name}-"
-                    ),
-                    directory=USERDIR,
-                )
-                returnlist.append(nxsas_serializer)
-
             make_analysis_documents(dname, ddoc)
 
             return returnlist
@@ -330,7 +311,25 @@ def factory(name, start_doc):
             make_analysis_documents(dname, ddoc)
             return []
 
-    return [], [subfactory]
+    ## de-indented this and copied it below at original indentation: make_analysis_documents(dname, ddoc)
+    dt2 = datetime.datetime.now()
+    formatted_date2 = dt2.strftime("%Y-%m-%d")
+    nxsas_serializer = suitcase.nxsas.Serializer(
+        file_prefix=(
+            "{cycle}/"
+            "{cycle}_"
+            "{institution}_"
+            "{user_name}/"
+            "{project_name}/"
+            f"{formatted_date2}/"
+            "{scan_id}/"
+            "{scan_id}-"
+            "{sample_name}-"
+        ),
+        directory=USERDIR,
+    )
+
+    return [nxsas_serializer], [subfactory]
 
 
 import event_model
