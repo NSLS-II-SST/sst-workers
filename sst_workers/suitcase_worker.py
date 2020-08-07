@@ -32,11 +32,11 @@ import suitcase.mongo_normalized
 import suitcase.nxsas
 
 
-#USERDIR = "/DATA/users/"
-USERDIR = "/home/jlynch/DATA/users/"
+USERDIR = "/DATA/users/"
+#USERDIR = "/home/jlynch/DATA/users/"
 
-#mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
-mongo_client = pymongo.MongoClient("mongodb://127.0.0.1:27017")
+mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
+#mongo_client = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 # These are parameters to pass to suitcase.mongo_normalized.Serializer.
 ANALYSIS_DB = {
     "metadatastore_db": mongo_client.get_database("rsoxs-analysis-metadata-store"),
