@@ -327,7 +327,7 @@ def factory(name, start_doc):
             f"{formatted_date2}/"
             "{scan_id}/"
             "{scan_id}-"
-            "{sample_name}-"
+            "{sample_name}"
         ),
         directory=USERDIR,
     )
