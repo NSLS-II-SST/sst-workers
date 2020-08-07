@@ -184,7 +184,8 @@ def factory(name, start_doc):
         sort_keys=True,
         indent=2,
     ) as serializer:
-        serializer(name, start_doc)
+        ...
+        #serializer(name, start_doc)
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
     SAXS_sync_subtractor = DarkSubtraction("Synced_saxs_image")
@@ -206,7 +207,7 @@ def factory(name, start_doc):
         ),
         directory=USERDIR,
     )
-    name, doc = SWserializer(name, start_doc)
+    # name, doc = SWserializer(name, start_doc)
     mongo_serializer = suitcase.mongo_normalized.Serializer(**ANALYSIS_DB)
     fields = [
         "Synced_saxs_image",
@@ -257,21 +258,21 @@ def factory(name, start_doc):
         if ddoc["name"] in ["primary", "dark"]:
             returnlist = []
             if "Synced" in start_doc["detectors"]:
-                name, doc = SAXS_sync_subtractor("start", start_doc)
-                WAXS_sync_subtractor(name, doc)
-                dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
-                dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                #name, doc = SAXS_sync_subtractor("start", start_doc)
+                #WAXS_sync_subtractor(name, doc)
+                #dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
+                #dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
+                #SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif "Small Angle CCD Detector" in start_doc["detectors"]:
-                name, doc = SAXS_subtractor("start", start_doc)
-                dname, ddoc = SAXS_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                #name, doc = SAXS_subtractor("start", start_doc)
+                #dname, ddoc = SAXS_subtractor(dname, ddoc)
+                #SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif "Wide Angle CCD Detector" in start_doc["detectors"]:
-                name, doc = WAXS_subtractor("start", start_doc)
-                dname, ddoc = WAXS_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                #name, doc = WAXS_subtractor("start", start_doc)
+                #dname, ddoc = WAXS_subtractor(dname, ddoc)
+                #SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc["name"] == "primary":
