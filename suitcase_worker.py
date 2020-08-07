@@ -182,7 +182,8 @@ def factory(name, start_doc):
         sort_keys=True,
         indent=2,
     ) as serializer:
-        serializer(name, start_doc)
+        ...
+        #serializer(name, start_doc)
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
     SAXS_sync_subtractor = DarkSubtraction("Synced_saxs_image")
@@ -204,7 +205,7 @@ def factory(name, start_doc):
         ),
         directory=USERDIR,
     )
-    name, doc = SWserializer(name, start_doc)
+    #name, doc = SWserializer(name, start_doc)
     mongo_serializer = suitcase.mongo_normalized.Serializer(**ANALYSIS_DB)
     fields = [
         "Synced_saxs_image",
