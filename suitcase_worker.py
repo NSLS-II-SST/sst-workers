@@ -214,7 +214,7 @@ def factory(name, start_doc):
         "Wide Angle CCD Detector_image",
     ]
     make_analysis_documents = Composer(fields, {}, mongo_serializer)
-    make_analysis_documents(name, startdoc)
+    make_analysis_documents(name, start_doc)
     serializercsv = csv.Serializer(
         file_prefix=(
             "{start[cycle]}/"
