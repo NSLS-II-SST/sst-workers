@@ -1,0 +1,12 @@
+bluesky
+bluesky-darkframes
+databroker
+event-model
+numpy
+ophyd
+pymongo
+suitcase-csv
+suitcase-jsonl
+suitcase-mongo
+suitcase-nxsas
+suitcase-tiff

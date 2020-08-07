@@ -15,27 +15,28 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
 import collections
-import os.path
-from pprint import pformat
-import sys
-import uuid
-from event_model import compose_run, DocumentRouter, EventModelError, RunRouter
-from suitcase import tiff_series, csv
-import suitcase.jsonl
-import suitcase.mongo_normalized
 import datetime
-from bluesky_darkframes import DarkSubtraction
-from bluesky.callbacks.zmq import RemoteDispatcher
-import databroker.assets.handlers
+import uuid
+
 import numpy
 import pymongo
 
+from bluesky_darkframes import DarkSubtraction
+from bluesky.callbacks.zmq import RemoteDispatcher
+import databroker.assets.handlers
+from event_model import compose_run, DocumentRouter, EventModelError, RunRouter
+import ophyd.sim
+from suitcase import tiff_series, csv
+import suitcase.jsonl
+import suitcase.mongo_normalized
 import suitcase.nxsas
 
 
-USERDIR = "/DATA/users/"
+#USERDIR = "/DATA/users/"
+USERDIR = "/home/jlynch/DATA/users/"
 
-mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
+#mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
+mongo_client = pymongo.MongoClient("mongodb://127.0.0.1:27017")
 # These are parameters to pass to suitcase.mongo_normalized.Serializer.
 ANALYSIS_DB = {
     "metadatastore_db": mongo_client.get_database("rsoxs-analysis-metadata-store"),
@@ -164,19 +165,20 @@ class Composer(DocumentRouter):
 
 
 def factory(name, start_doc):
+    print(f"factory({name}, {start_doc})")
     dt = datetime.datetime.now()
     formatted_date = dt.strftime("%Y-%m-%d")
     with suitcase.jsonl.Serializer(
         file_prefix=(
-            "{cycle}/"
-            "{cycle}_"
-            "{institution}_"
-            "{user_name}/"
-            "{project_name}/"
+            "{start[cycle]}/"
+            "{start[cycle]}_"
+            "{start[institution]}_"
+            "{start[user_name]}/"
+            "{start[project_name]}/"
             f"{formatted_date}/"
-            "{scan_id}/"
-            "{scan_id}-"
-            "{sample_name}-"
+            "{start[scan_id]}/"
+            "{start[scan_id]}-"
+            "{start[sample_name]}-"
         ),
         directory=USERDIR,
         sort_keys=True,
@@ -273,7 +275,7 @@ def factory(name, start_doc):
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc["name"] == "primary":
-                # jlynch 2020/07/13
+                # jlynch 2020/07/13 - newer event_model does this
                 # serializercsv("start", start_doc)
                 # serializercsv("descriptor", descriptor_doc)
                 returnlist.append(serializercsv)
@@ -304,7 +306,7 @@ def factory(name, start_doc):
                 flush=True,
                 line_terminator="\n",
             )
-            # jlynch 2020/07/13
+            # jlynch 2020/07/13 - newer event_model does this
             # serializer("start", start_doc)
             # serializer("descriptor", descriptor_doc)
             make_analysis_documents(dname, ddoc)
@@ -334,11 +336,30 @@ def factory(name, start_doc):
     return [nxsas_serializer], [subfactory]
 
 
-import event_model
-import suitcase.jsonl
+handler_registry = {
+    "AD_TIFF": databroker.assets.handlers.AreaDetectorTiffHandler,
+    "NPY_SEQ": ophyd.sim.NumpySeqHandler
+}
 
 
-handler_registry = {"AD_TIFF": databroker.assets.handlers.AreaDetectorTiffHandler}
-rr = RunRouter([factory], handler_registry=handler_registry)
-rr_token = dispatcher.subscribe(rr)
-dispatcher.start()
+def start():
+    rr = RunRouter([factory], handler_registry=handler_registry)
+    rr_token = dispatcher.subscribe(rr)
+    dispatcher.start()
+
+
+def test():
+    import pprint
+
+    rr = RunRouter([factory], handler_registry=handler_registry)
+
+    d18_db = databroker.catalog["rsoxs"]["d18"]
+
+    for name, doc in d18_db.canonical(fill="no"):
+        print(f"name: {name}")
+        #pprint.pprint(doc)
+        rr(name, doc)
+
+
+if __name__ == "__main__":
+    test()
