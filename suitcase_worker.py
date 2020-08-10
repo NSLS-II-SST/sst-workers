@@ -240,13 +240,13 @@ def factory(name, start_doc):
         make_analysis_documents(swname, swdoc)
 
     def fill_subtract_and_serialize_saxs(swname, swdoc):
-        swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
+        #swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         #SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
 
     def fill_subtract_and_serialize_waxs(swname, swdoc):
-        swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
+        #swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
         #SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
@@ -258,13 +258,13 @@ def factory(name, start_doc):
             if "Synced" in start_doc["detectors"]:
                 #name, doc = SAXS_sync_subtractor("start", start_doc)
                 #WAXS_sync_subtractor(name, doc)
-                #dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
-                #dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
+                dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
+                dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
                 #SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif "Small Angle CCD Detector" in start_doc["detectors"]:
                 #name, doc = SAXS_subtractor("start", start_doc)
-                #dname, ddoc = SAXS_subtractor(dname, ddoc)
+                dname, ddoc = SAXS_subtractor(dname, ddoc)
                 #SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif "Wide Angle CCD Detector" in start_doc["detectors"]:
