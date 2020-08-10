@@ -9,7 +9,7 @@ sst-workers
         :target: https://pypi.python.org/pypi/sst-workers
 
 
-ndent processes at SST
+independent processes at SST
 
 * Free software: 3-clause BSD license
 * Documentation: (COMING SOON!) https://jklynch.github.io/sst-workers.
