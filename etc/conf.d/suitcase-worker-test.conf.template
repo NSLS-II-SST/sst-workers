@@ -1,0 +1,11 @@
+[program:suitcase-worker-test]
+command=<path to virtual environment>/bin/start-rsoxs-suitcase-worker
+    --export-dir=<testing export directory>
+    --mongodb-uri=mongodb://127.0.0.1:27017
+    --kafka-bootstrap-servers=127.0.0.1:9092
+    --kafka-topics=test.rsoxs.bluesky.documents
+user=<testing account>
+autostart=true
+autorestart=true
+stderr_logfile=suitcase-worker-test.stderr.log
+stdout_logfile=suitcase-worker-test.stdout.log
