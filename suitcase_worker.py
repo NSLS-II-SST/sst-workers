@@ -236,7 +236,7 @@ def factory(name, start_doc):
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         #swname, swdoc = SAXS_subtractor(swname, swdoc)
         #swname, swdoc = WAXS_subtractor(swname, swdoc)
-        SWserializer(swname, swdoc)
+        #SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
 
     def fill_subtract_and_serialize_saxs(swname, swdoc):
@@ -248,7 +248,7 @@ def factory(name, start_doc):
     def fill_subtract_and_serialize_waxs(swname, swdoc):
         #swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
-        SWserializer(swname, swdoc)
+        #SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
 
     def subfactory(dname, descriptor_doc):
