@@ -1,2 +1,5 @@
+etc/conf.d/suitcase-worker-test.conf
+
 .idea/*
-__pycache__/*
+**/__pycache__/*
+*.egg-info/*
