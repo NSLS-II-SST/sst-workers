@@ -1,5 +1,6 @@
 etc/conf.d/suitcase-worker-test.conf
-
+*.log
+packed*
 .idea/*
 **/__pycache__/*
 *.egg-info/*
