@@ -1,5 +1,3 @@
-from pathlib import Path
-
 """
 Example:
 --------
@@ -14,8 +12,13 @@ Out[20]:
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_saxs_image-2.tiff'),
   WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
 """
+import argparse
 import collections
 import datetime
+from functools import partial
+import logging
+from pathlib import Path
+import pprint
 import uuid
 
 import numpy
@@ -23,6 +26,7 @@ import pymongo
 
 from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
+import bluesky_kafka
 import databroker.assets.handlers
 from event_model import compose_run, DocumentRouter, EventModelError, RunRouter
 import ophyd.sim
@@ -31,20 +35,7 @@ import suitcase.jsonl
 import suitcase.mongo_normalized
 import suitcase.nxsas
 
-
-USERDIR = "/DATA/users/"
-#USERDIR = "/home/jlynch/DATA/users/"
-
-mongo_client = pymongo.MongoClient("mongodb://xf07id1-ca1:27017")
-#mongo_client = pymongo.MongoClient("mongodb://127.0.0.1:27017")
-# These are parameters to pass to suitcase.mongo_normalized.Serializer.
-ANALYSIS_DB = {
-    "metadatastore_db": mongo_client.get_database("rsoxs-analysis-metadata-store"),
-    "asset_registry_db": mongo_client.get_database("rsoxs-analysis-assets-store"),
-}
-
-
-dispatcher = RemoteDispatcher("localhost:5578")
+logging.getLogger("sst_workers.suitcase_worker").setLevel(level=logging.DEBUG)
 
 
 class Composer(DocumentRouter):
@@ -164,7 +155,13 @@ class Composer(DocumentRouter):
 #        return light.astype('int') - dark
 
 
-def factory(name, start_doc):
+def factory(name, start_doc, export_dir, mongodb_uri):
+    mongo_client = pymongo.MongoClient(mongodb_uri)
+    analysis_db = {
+        "metadatastore_db": mongo_client.get_database("rsoxs-analysis-metadata-store"),
+        "asset_registry_db": mongo_client.get_database("rsoxs-analysis-assets-store"),
+    }
+
     print(f"factory({name}, {start_doc})")
     dt = datetime.datetime.now()
     formatted_date = dt.strftime("%Y-%m-%d")
@@ -180,12 +177,12 @@ def factory(name, start_doc):
             "{start[scan_id]}-"
             "{start[sample_name]}-"
         ),
-        directory=USERDIR,
+        directory=export_dir,
         sort_keys=True,
         indent=2,
     ) as serializer:
         ...
-        #serializer(name, start_doc)
+        # serializer(name, start_doc)
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
     SAXS_sync_subtractor = DarkSubtraction("Synced_saxs_image")
@@ -205,10 +202,12 @@ def factory(name, start_doc):
             "{start[sample_name]}-"
             #'{event[data][en_energy]:.2f}eV-'
         ),
-        directory=USERDIR,
+        directory=export_dir,
     )
     # name, doc = SWserializer(name, start_doc)
-    mongo_serializer = suitcase.mongo_normalized.Serializer(**ANALYSIS_DB)
+    # jklynch to make up for commenting out the line above
+    doc = start_doc
+    mongo_serializer = suitcase.mongo_normalized.Serializer(**analysis_db)
     fields = [
         "Synced_saxs_image",
         "Synced_waxs_image",
@@ -228,7 +227,7 @@ def factory(name, start_doc):
             "{start[scan_id]}-"
             "{start[sample_name]}-"
         ),
-        directory=USERDIR,
+        directory=export_dir,
         flush=True,
         line_terminator="\n",
     )
@@ -258,21 +257,21 @@ def factory(name, start_doc):
         if ddoc["name"] in ["primary", "dark"]:
             returnlist = []
             if "Synced" in start_doc["detectors"]:
-                #name, doc = SAXS_sync_subtractor("start", start_doc)
-                #WAXS_sync_subtractor(name, doc)
-                #dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
-                #dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
-                #SWserializer(dname, ddoc)
+                # name, doc = SAXS_sync_subtractor("start", start_doc)
+                # WAXS_sync_subtractor(name, doc)
+                # dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
+                # dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
+                # SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif "Small Angle CCD Detector" in start_doc["detectors"]:
-                #name, doc = SAXS_subtractor("start", start_doc)
-                #dname, ddoc = SAXS_subtractor(dname, ddoc)
-                #SWserializer(dname, ddoc)
+                # name, doc = SAXS_subtractor("start", start_doc)
+                # dname, ddoc = SAXS_subtractor(dname, ddoc)
+                # SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif "Wide Angle CCD Detector" in start_doc["detectors"]:
-                #name, doc = WAXS_subtractor("start", start_doc)
-                #dname, ddoc = WAXS_subtractor(dname, ddoc)
-                #SWserializer(dname, ddoc)
+                # name, doc = WAXS_subtractor("start", start_doc)
+                # dname, ddoc = WAXS_subtractor(dname, ddoc)
+                # SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc["name"] == "primary":
@@ -280,7 +279,7 @@ def factory(name, start_doc):
                 # serializercsv("start", start_doc)
                 # serializercsv("descriptor", descriptor_doc)
                 returnlist.append(serializercsv)
-            
+
             make_analysis_documents(dname, ddoc)
 
             return returnlist
@@ -303,7 +302,7 @@ def factory(name, start_doc):
                     "{start[sample_name]}-"
                     #'{event[data][Beamline Energy_energy]:.2f}eV-'
                 ),
-                directory=USERDIR,
+                directory=export_dir,
                 flush=True,
                 line_terminator="\n",
             )
@@ -331,36 +330,57 @@ def factory(name, start_doc):
             "{scan_id}-"
             "{sample_name}-"
         ),
-        directory=USERDIR,
+        directory=export_dir,
     )
 
     return [nxsas_serializer], [subfactory]
 
 
-handler_registry = {
-    "AD_TIFF": databroker.assets.handlers.AreaDetectorTiffHandler,
-    "NPY_SEQ": ophyd.sim.NumpySeqHandler
-}
+def main():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument(
+        "--export-dir", required=True, help="output directory for files"
+    )
+    arg_parser.add_argument(
+        "--mongodb-uri", required=True, help="URI for mongo database"
+    )
+    arg_parser.add_argument(
+        "--kafka-bootstrap-servers",
+        required=False,
+        default="cmb01:9092,cmb02:9092,cmb03:9092",
+        help="comma-separated list of Kafka broker host:port",
+    )
+    arg_parser.add_argument(
+        "--kafka-topics",
+        required=False,
+        default="rsoxs.bluesky.documents",
+        type=lambda comma_sep_list: comma_sep_list.split(","),
+        help="comma-separated list of Kafka topics from which bluesky documents will be consumed",
+    )
+
+    args = arg_parser.parse_args()
+    pprint.pprint(args)
+    start(**vars(args))
 
 
-def start():
-    rr = RunRouter([factory], handler_registry=handler_registry)
-    rr_token = dispatcher.subscribe(rr)
+def start(export_dir, mongodb_uri, kafka_bootstrap_servers, kafka_topics):
+    # dispatcher = RemoteDispatcher("localhost:5578")
+    dispatcher = bluesky_kafka.RemoteDispatcher(
+        topics=kafka_topics,
+        group_id="rsoxs-suitcase-worker",
+        bootstrap_servers=kafka_bootstrap_servers,
+    )
+
+    rr = RunRouter(
+        [partial(factory, export_dir=export_dir, mongodb_uri=mongodb_uri)],
+        handler_registry={
+            "AD_TIFF": databroker.assets.handlers.AreaDetectorTiffHandler,
+            "NPY_SEQ": ophyd.sim.NumpySeqHandler,
+        },
+    )
+    dispatcher.subscribe(rr)
     dispatcher.start()
 
 
-def test():
-    import pprint
-
-    rr = RunRouter([factory], handler_registry=handler_registry)
-
-    d18_db = databroker.catalog["rsoxs"]["d18"]
-
-    for name, doc in d18_db.canonical(fill="no"):
-        print(f"name: {name}")
-        #pprint.pprint(doc)
-        rr(name, doc)
-
-
 if __name__ == "__main__":
-    test()
+    main()
