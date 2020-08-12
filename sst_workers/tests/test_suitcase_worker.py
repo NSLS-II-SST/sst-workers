@@ -63,6 +63,8 @@ def test_suitcase_worker(tmp_path):
     d18_db = databroker.catalog["rsoxs"]["d18"]
     for name, doc in d18_db.canonical(fill="yes"):
         kafka_publisher(name, doc)
+    # need time to write the file?
+    time.sleep(10)
 
     suitcase_worker_process.terminate()
     suitcase_worker_process.join()
