@@ -205,7 +205,7 @@ def factory(name, start_doc):
         ),
         directory=USERDIR,
     )
-    #name, doc = SWserializer(name, start_doc)
+    name, doc = SWserializer(name, start_doc)
     mongo_serializer = suitcase.mongo_normalized.Serializer(**ANALYSIS_DB)
     fields = [
         "Synced_saxs_image",
@@ -234,21 +234,21 @@ def factory(name, start_doc):
     def fill_subtract_and_serialize(swname, swdoc):
         swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
-        #swname, swdoc = SAXS_subtractor(swname, swdoc)
-        #swname, swdoc = WAXS_subtractor(swname, swdoc)
-        #SWserializer(swname, swdoc)
+        swname, swdoc = SAXS_subtractor(swname, swdoc)
+        swname, swdoc = WAXS_subtractor(swname, swdoc)
+        SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
 
     def fill_subtract_and_serialize_saxs(swname, swdoc):
-        #swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
+        swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
 
     def fill_subtract_and_serialize_waxs(swname, swdoc):
-        #swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
+        swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
-        #SWserializer(swname, swdoc)
+        SWserializer(swname, swdoc)
         make_analysis_documents(swname, swdoc)
 
     def subfactory(dname, descriptor_doc):
@@ -256,27 +256,27 @@ def factory(name, start_doc):
         if ddoc["name"] in ["primary", "dark"]:
             returnlist = []
             if "Synced" in start_doc["detectors"]:
-                #name, doc = SAXS_sync_subtractor("start", start_doc)
-                #WAXS_sync_subtractor(name, doc)
-                #dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
-                #dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
-                #SWserializer(dname, ddoc)
+                name, doc = SAXS_sync_subtractor("start", start_doc)
+                WAXS_sync_subtractor(name, doc)
+                dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
+                dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
+                SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif "Small Angle CCD Detector" in start_doc["detectors"]:
-                #name, doc = SAXS_subtractor("start", start_doc)
-                #dname, ddoc = SAXS_subtractor(dname, ddoc)
-                #SWserializer(dname, ddoc)
+                name, doc = SAXS_subtractor("start", start_doc)
+                dname, ddoc = SAXS_subtractor(dname, ddoc)
+                SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif "Wide Angle CCD Detector" in start_doc["detectors"]:
-                #name, doc = WAXS_subtractor("start", start_doc)
-                #dname, ddoc = WAXS_subtractor(dname, ddoc)
-                #SWserializer(dname, ddoc)
+                name, doc = WAXS_subtractor("start", start_doc)
+                dname, ddoc = WAXS_subtractor(dname, ddoc)
+                SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc["name"] == "primary":
                 # jlynch 2020/07/13
-                # serializercsv("start", start_doc)
-                # serializercsv("descriptor", descriptor_doc)
+                serializercsv("start", start_doc)
+                serializercsv("descriptor", descriptor_doc)
                 returnlist.append(serializercsv)
             
             make_analysis_documents(dname, ddoc)
@@ -306,8 +306,8 @@ def factory(name, start_doc):
                 line_terminator="\n",
             )
             # jlynch 2020/07/13
-            # serializer("start", start_doc)
-            # serializer("descriptor", descriptor_doc)
+            serializer("start", start_doc)
+            serializer("descriptor", descriptor_doc)
             make_analysis_documents(dname, ddoc)
             return [serializer]
         else:
@@ -315,24 +315,8 @@ def factory(name, start_doc):
             return []
 
     ## de-indented this and copied it below at original indentation: make_analysis_documents(dname, ddoc)
-    dt2 = datetime.datetime.now()
-    formatted_date2 = dt2.strftime("%Y-%m-%d")
-    nxsas_serializer = suitcase.nxsas.Serializer(
-        file_prefix=(
-            "{cycle}/"
-            "{cycle}_"
-            "{institution}_"
-            "{user_name}/"
-            "{project_name}/"
-            f"{formatted_date2}/"
-            "{scan_id}/"
-            "{scan_id}-"
-            "{sample_name}"
-        ),
-        directory=USERDIR,
-    )
 
-    return [nxsas_serializer], [subfactory]
+    return [], [subfactory]
 
 
 import event_model
