@@ -46,10 +46,10 @@ def factory(name, start_doc):
         serializer(name, start_doc)
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
-    SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
-    WAXS_sync_subtractor = DarkSubtraction('Synced_waxs_image')
-    SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
-    WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
+    # SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
+    # WAXS_sync_subtractor = DarkSubtraction('Synced_waxs_image')
+    # SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
+    # WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
     SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
                                                        '{start[cycle]}_'
 						       '{start[institution]}_'
@@ -77,18 +77,18 @@ def factory(name, start_doc):
                                    line_terminator='\n')
 
     def fill_subtract_and_serialize(swname, swdoc):
-        swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
-        swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
-        swname, swdoc = SAXS_subtractor(swname, swdoc)
-        swname, swdoc = WAXS_subtractor(swname, swdoc)
+        # swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
+        # swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
+        # swname, swdoc = SAXS_subtractor(swname, swdoc)
+        # swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
     def fill_subtract_and_serialize_saxs(swname, swdoc):
-        swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
-        swname, swdoc = SAXS_subtractor(swname, swdoc)
+        # swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
+        # swname, swdoc = SAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
     def fill_subtract_and_serialize_waxs(swname, swdoc):
-        swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
-        swname, swdoc = WAXS_subtractor(swname, swdoc)
+        # swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
+        # swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
 
     def subfactory(dname, descriptor_doc):
@@ -96,20 +96,20 @@ def factory(name, start_doc):
         if ddoc['name'] in ['primary', 'dark']:
             returnlist = []
             if 'Synced' in start_doc['detectors']:
-                name, doc = SAXS_sync_subtractor('start', start_doc)
-                WAXS_sync_subtractor(name, doc)
-                dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
-                dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                # name, doc = SAXS_sync_subtractor('start', start_doc)
+                # WAXS_sync_subtractor(name, doc)
+                # dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
+                # dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
+                # SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif 'Small Angle CCD Detector' in start_doc['detectors']:
-                name, doc = SAXS_subtractor('start', start_doc)
-                dname, ddoc = SAXS_subtractor(dname, ddoc)
+                # name, doc = SAXS_subtractor('start', start_doc)
+                # dname, ddoc = SAXS_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif 'Wide Angle CCD Detector' in start_doc['detectors']:
                 name, doc = WAXS_subtractor('start', start_doc)
-                dname, ddoc = WAXS_subtractor(dname, ddoc)
+                # dname, ddoc = WAXS_subtractor(dname, ddoc)
                 SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
