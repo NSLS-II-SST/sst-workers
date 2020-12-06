@@ -21,7 +21,7 @@ from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
 import databroker.assets.handlers
 
-USERDIR = '/DATA/users/'
+USERDIR = '/areadata/users/'
 
 
 dispatcher = RemoteDispatcher('localhost:5578')
