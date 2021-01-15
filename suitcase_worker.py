@@ -1,18 +1,5 @@
 from pathlib import Path
 
-"""
-Example:
---------
-In [20]: tiff_series.export(db[-3].documents(fill=True), file_prefix='{start[institution]}-Eph={event[data][energy]}-{s
-    ...: tart[scan_id]}-', directory=f'Z:/images/users/{hdr.start["user"]}')
-Out[20]:
-{'stream_data': [WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=459.987181-40-primary-sw_det_saxs_image-0.tiff'),
-  WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=459.987181-40-primary-sw_det_waxs_image-0.tiff'),
-  WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=459.9903474-40-primary-sw_det_saxs_image-1.tiff'),
-  WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=459.9903474-40-primary-sw_det_waxs_image-1.tiff'),
-  WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_saxs_image-2.tiff'),
-  WindowsPath('//XF07ID1-WS17/RSoXS Documents/images/users/Eliot/NIST-Eph=460.0084854-40-primary-sw_det_waxs_image-2.tiff')]}
-"""
 from event_model import RunRouter
 from suitcase import tiff_series, csv
 import suitcase.jsonl
@@ -23,17 +10,13 @@ import databroker.assets.handlers
 
 USERDIR = '/areadata/users/'
 
-
 dispatcher = RemoteDispatcher('localhost:5578')
-
 
 def factory(name, start_doc):
     dt = datetime.datetime.now()
     formatted_date = dt.strftime('%Y-%m-%d')
     with suitcase.jsonl.Serializer(file_prefix=('{cycle}/'
-                                                '{cycle}_'
-                                                '{institution}_'
-                                                '{user_name}/'
+                                                '{proposal_id}/auto/'
                                                 '{project_name}/'
                                                 f'{formatted_date}/'
                                                 '{scan_id}/'
@@ -51,22 +34,18 @@ def factory(name, start_doc):
     SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
     WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
     SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
-                                                       '{start[cycle]}_'
-						       '{start[institution]}_'
-						       '{start[user_name]}/'
+                                                       '{proposal_id}/auto/'
                                                        '{start[project_name]}/'
                                                        f'{formatted_date}/'
                                                        '{start[scan_id]}/'
                                                        '{start[scan_id]}-'
                                                        '{start[sample_name]}-'
-                                                       #'{event[data][en_energy]:.2f}eV-'
+                                                       # '{event[data][en_energy]:.2f}eV-'
                                                        ),
                                           directory=USERDIR)
     name, doc = SWserializer(name, start_doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
-                                                '{start[cycle]}_'
-                                                '{start[institution]}_'
-                                                '{start[user_name]}/'
+                                                '{proposal_id}/auto/'
                                                 '{start[project_name]}/'
                                                 f'{formatted_date}/'
                                                 '{start[scan_id]}-'
@@ -82,10 +61,12 @@ def factory(name, start_doc):
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
+
     def fill_subtract_and_serialize_saxs(swname, swdoc):
         swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         SWserializer(swname, swdoc)
+
     def fill_subtract_and_serialize_waxs(swname, swdoc):
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
@@ -123,15 +104,13 @@ def factory(name, start_doc):
             formatted_date = dt.strftime('%Y-%m-%d')
             # energy = hdr.table(stream_name='baseline')['Beamline Energy_energy'][1]
             serializer = csv.Serializer(file_prefix=('{start[cycle]}/'
-                                                     '{start[cycle]}_'
-                                                     '{start[institution]}_'
-                                                     '{start[user_name]}/'
+                                                     '{proposal_id}/auto/'
                                                      '{start[project_name]}/'
                                                      f'{formatted_date}/'
                                                      '{start[scan_id]}/'
                                                      '{start[scan_id]}-'
                                                      '{start[sample_name]}-'
-                                                     #'{event[data][Beamline Energy_energy]:.2f}eV-'
+                                                     # '{event[data][Beamline Energy_energy]:.2f}eV-'
                                                      ),
                                         directory=USERDIR,
                                         flush=True,
