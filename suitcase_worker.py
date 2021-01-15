@@ -34,7 +34,7 @@ def factory(name, start_doc):
     SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
     WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
     SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
-                                                       '{proposal_id}/auto/'
+                                                       '{start[proposal_id]}/auto/'
                                                        '{start[project_name]}/'
                                                        f'{formatted_date}/'
                                                        '{start[scan_id]}/'
@@ -45,7 +45,7 @@ def factory(name, start_doc):
                                           directory=USERDIR)
     name, doc = SWserializer(name, start_doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
-                                                '{proposal_id}/auto/'
+                                                '{start[proposal_id]}/auto/'
                                                 '{start[project_name]}/'
                                                 f'{formatted_date}/'
                                                 '{start[scan_id]}-'
@@ -104,7 +104,7 @@ def factory(name, start_doc):
             formatted_date = dt.strftime('%Y-%m-%d')
             # energy = hdr.table(stream_name='baseline')['Beamline Energy_energy'][1]
             serializer = csv.Serializer(file_prefix=('{start[cycle]}/'
-                                                     '{proposal_id}/auto/'
+                                                     '{start[proposal_id]}/auto/'
                                                      '{start[project_name]}/'
                                                      f'{formatted_date}/'
                                                      '{start[scan_id]}/'
