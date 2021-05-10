@@ -15,14 +15,14 @@ dispatcher = RemoteDispatcher('localhost:5578')
 def factory(name, start_doc):
     dt = datetime.datetime.now()
     formatted_date = dt.strftime('%Y-%m-%d')
-    with suitcase.jsonl.Serializer(file_prefix=('{cycle}/'
-                                                '{proposal_id}/auto/'
-                                                '{project_name}/'
-                                                f'{formatted_date}/'
-                                                '{scan_id}/'
-                                                '{scan_id}-'
-                                                '{sample_name}-'
-                                                ),
+    with suitcase.jsonl.Serializer(file_prefix=('{start[cycle]}/'
+                                                       '{start[proposal_id]}/auto/'
+                                                       '{start[project_name]}/'
+                                                       f'{formatted_date}/'
+                                                       '{start[scan_id]}/'
+                                                       '{start[scan_id]}-'
+                                                       '{start[sample_name]}-'
+                                                       ),
                                    directory=USERDIR,
                                    sort_keys=True,
                                    indent=2) as serializer:
