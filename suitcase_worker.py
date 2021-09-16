@@ -8,7 +8,7 @@ from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
 import databroker.assets.handlers
 
-USERDIR = '/areadata/users/'
+USERDIR = '/nsls2/data/sst1/legacy/RSoXS/suitcased_data/users/'
 
 dispatcher = RemoteDispatcher('localhost:5578')
 
@@ -16,7 +16,7 @@ def factory(name, start_doc):
     dt = datetime.datetime.now()
     formatted_date = dt.strftime('%Y-%m-%d')
     with suitcase.jsonl.Serializer(file_prefix=('{cycle}/'
-                                                '{proposal_id}/auto/'
+                                                '{proposal_id}-{institution}/auto/'
                                                 '{project_name}/'
                                                 f'{formatted_date}/'
                                                 '{scan_id}/'
@@ -34,7 +34,7 @@ def factory(name, start_doc):
     SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
     WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
     SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
-                                                       '{start[proposal_id]}/auto/'
+                                                       '{start[proposal_id]}-{start[institution]}/auto/'
                                                        '{start[project_name]}/'
                                                        f'{formatted_date}/'
                                                        '{start[scan_id]}/'
@@ -45,7 +45,7 @@ def factory(name, start_doc):
                                           directory=USERDIR)
     name, doc = SWserializer(name, start_doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
-                                                '{start[proposal_id]}/auto/'
+                                                '{start[proposal_id]}-{start[institution]}/auto/'
                                                 '{start[project_name]}/'
                                                 f'{formatted_date}/'
                                                 '{start[scan_id]}-'
@@ -104,7 +104,7 @@ def factory(name, start_doc):
             formatted_date = dt.strftime('%Y-%m-%d')
             # energy = hdr.table(stream_name='baseline')['Beamline Energy_energy'][1]
             serializer = csv.Serializer(file_prefix=('{start[cycle]}/'
-                                                     '{start[proposal_id]}/auto/'
+                                                     '{start[proposal_id]}-{start[institution]}/auto/'
                                                      '{start[project_name]}/'
                                                      f'{formatted_date}/'
                                                      '{start[scan_id]}/'
