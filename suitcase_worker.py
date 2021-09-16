@@ -115,6 +115,7 @@ def factory(name, start_doc):
                                         directory=USERDIR,
                                         flush=True,
                                         line_terminator='\n')
+            print('testing baseline printing', descriptor_doc['name'])
             serializer('start', start_doc)
             serializer('descriptor', descriptor_doc)
             return [serializer]
