@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 from event_model import RunRouter
@@ -26,7 +27,14 @@ def factory(name, start_doc):
                                    directory=USERDIR,
                                    sort_keys=True,
                                    indent=2) as serializer:
-        serializer(name, start_doc)
+        try:
+            serializer(name, start_doc)
+        except FileExistsError:
+            import pprint
+            msg = f"Failed serializing '{name}':\n{pprint.pprint(start_doc)}"
+            # raise RuntimeError(msg)
+            print(msg)
+            sys.exit(1)
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
     SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
