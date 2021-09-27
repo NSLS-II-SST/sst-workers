@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -34,7 +35,9 @@ def factory(name, start_doc):
             msg = f"Failed serializing '{name}':\n{pprint.pprint(start_doc)}"
             # raise RuntimeError(msg)
             print(msg)
-            sys.exit(1)
+            print("About to exit now...")
+            os._exit(1)
+            print("After exiting. Should never reach this line!")
         # The jsonl Serializer just needs the start doc, so we are done with
         # it now.
     SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
