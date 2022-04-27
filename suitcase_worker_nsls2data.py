@@ -30,7 +30,7 @@ def factory(name, start_doc):
                                    indent=2) as serializer:
         try:
             serializer(name, start_doc)
-        except Exception:
+        except FileExistsError:
             import pprint
             msg = f"Failed serializing '{name}':\n{pprint.pprint(start_doc)}"
             # raise RuntimeError(msg)
@@ -44,8 +44,6 @@ def factory(name, start_doc):
     WAXS_sync_subtractor = DarkSubtraction('Synced_waxs_image')
     SAXS_subtractor = DarkSubtraction('Small Angle CCD Detector_image')
     WAXS_subtractor = DarkSubtraction('Wide Angle CCD Detector_image')
-
-
     SWserializer = tiff_series.Serializer(file_prefix=('{start[cycle]}/'
                                                        '{start[proposal_id]}-{start[institution]}/auto/'
                                                        '{start[project_name]}/'
@@ -56,14 +54,7 @@ def factory(name, start_doc):
                                                        # '{event[data][en_energy]:.2f}eV-'
                                                        ),
                                           directory=USERDIR)
-
-
-
-     try:
-         name, doc = SWserializer(name, start_doc)
-     except Exception:
-         os._exit(1)
-
+    name, doc = SWserializer(name, start_doc)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
                                                 '{start[proposal_id]}-{start[institution]}/auto/'
                                                 '{start[project_name]}/'
@@ -76,30 +67,21 @@ def factory(name, start_doc):
                                    line_terminator='\n')
 
     def fill_subtract_and_serialize(swname, swdoc):
-        try:
-            swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
-            swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
-            swname, swdoc = SAXS_subtractor(swname, swdoc)
-            swname, swdoc = WAXS_subtractor(swname, swdoc)
-            SWserializer(swname, swdoc)
-        except Exception:
-            os._exit(1)
+        swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
+        swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
+        swname, swdoc = SAXS_subtractor(swname, swdoc)
+        swname, swdoc = WAXS_subtractor(swname, swdoc)
+        SWserializer(swname, swdoc)
 
     def fill_subtract_and_serialize_saxs(swname, swdoc):
-        try:
-            swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
-            swname, swdoc = SAXS_subtractor(swname, swdoc)
-            SWserializer(swname, swdoc)
-        except Exception:
-            os._exit(1)
+        swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
+        swname, swdoc = SAXS_subtractor(swname, swdoc)
+        SWserializer(swname, swdoc)
 
     def fill_subtract_and_serialize_waxs(swname, swdoc):
-        try:
-            swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
-            swname, swdoc = WAXS_subtractor(swname, swdoc)
-            SWserializer(swname, swdoc)
-        except Exception:
-            os._exit(1)
+        swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
+        swname, swdoc = WAXS_subtractor(swname, swdoc)
+        SWserializer(swname, swdoc)
 
     def subfactory(dname, descriptor_doc):
         dname, ddoc = dname, descriptor_doc
@@ -110,35 +92,22 @@ def factory(name, start_doc):
                 WAXS_sync_subtractor(name, doc)
                 dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
                 dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
-                SAXS_sync_subtractor = DarkSubtraction('Synced_saxs_image')
-                try:
-                    SWserializer(dname, ddoc)
-                except Exception:
-                    os._exit(1)
+                SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize)
             elif 'Small Angle CCD Detector' in start_doc['detectors']:
                 name, doc = SAXS_subtractor('start', start_doc)
                 dname, ddoc = SAXS_subtractor(dname, ddoc)
-                try:
-                    SWserializer(dname, ddoc)
-                except Exception:
-                    os._exit(1)
+                SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif 'Wide Angle CCD Detector' in start_doc['detectors']:
                 name, doc = WAXS_subtractor('start', start_doc)
                 dname, ddoc = WAXS_subtractor(dname, ddoc)
-                try:
-                    SWserializer(dname, ddoc)
-                except Exception:
-                    os._exit(1)
+                SWserializer(dname, ddoc)
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc['name'] == 'primary':
-                try:
-                    serializercsv('start', start_doc)
-                    serializercsv('descriptor', descriptor_doc)
-                except Exception:
-                    os._exit(1)
+                serializercsv('start', start_doc)
+                serializercsv('descriptor', descriptor_doc)
                 returnlist.append(serializercsv)
             return returnlist
         elif 'baseline' in descriptor_doc['name'] or 'monitor' in descriptor_doc['name']:
@@ -158,11 +127,8 @@ def factory(name, start_doc):
                                         flush=True,
                                         line_terminator='\n')
             print('testing baseline printing', descriptor_doc['name'])
-            try:
-                serializer('start', start_doc)
-                serializer('descriptor', descriptor_doc)
-            except Exception:
-                os._exit(1)
+            serializer('start', start_doc)
+            serializer('descriptor', descriptor_doc)
             return [serializer]
         else:
             return []
