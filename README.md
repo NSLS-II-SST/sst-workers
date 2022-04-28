@@ -8,4 +8,5 @@
   - Runs suitcase protocol from `suitcase_worker_nsls2data.py`
   - User: softioc-sst
 - bluesky-0MQ-proxy
+  - Runs bash script `run-default-bluesky-0MQ-proxy.sh` in usr bin.
   - User: xf07id1
