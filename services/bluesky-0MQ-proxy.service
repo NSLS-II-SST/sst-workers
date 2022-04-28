@@ -1,0 +1,14 @@
+[Unit]
+Description=Bluesky 0MQ proxy service
+
+[Service]
+User=xf07id1
+Group=xf07id1
+SyslogIdentifier=bluesky-0MQ-proxy
+TimeoutStartSec=0
+Restart=always
+# WorkingDirectory=<something>
+ExecStart=/usr/local/bin/run-default-bluesky-0MQ-proxy.sh
+
+[Install]
+WantedBy=multi-user.target
