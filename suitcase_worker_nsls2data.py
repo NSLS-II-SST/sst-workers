@@ -10,7 +10,7 @@ from bluesky_darkframes import DarkSubtraction
 from bluesky.callbacks.zmq import RemoteDispatcher
 import databroker.assets.handlers
 
-USERDIR = '/nsls2/data/sst1/legacy/RSoXS/suitcased_data/users/'
+USERDIR = '/nsls2/data/sst/legacy/RSoXS/suitcased_data/users/'
 
 dispatcher = RemoteDispatcher('localhost:5578')
 

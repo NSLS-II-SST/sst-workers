@@ -12,7 +12,7 @@ Restart=always
 # Restart=on-failure
 RestartSec=5s
 # WorkingDirectory=<something>
-ExecStart=/opt/conda_envs/analysis-2019-3.0-rsoxs/bin/python /opt/bluesky_workers/suitcase_worker_nsls2data.py
+ExecStart=${BS_ENV}/bin/python /nsls2/data/sst/rsoxs/shared/config/bluesky/collection_packages/sst-workers/suitcase_worker_nsls2data.py
 
 [Install]
 WantedBy=multi-user.target
