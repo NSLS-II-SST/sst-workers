@@ -4,8 +4,8 @@ StartLimitIntervalSec=1400
 StartLimitBurst=7200
 
 [Service]
-User=softioc
-Group=softioc
+User=softioc-sst
+Group=softioc-sst
 SyslogIdentifier=bluesky-suitcase-worker
 TimeoutStartSec=2
 Restart=always
