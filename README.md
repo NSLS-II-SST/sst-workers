@@ -11,3 +11,6 @@ Currently copying to `/etc` requires root access.
 - bluesky-0MQ-proxy
   - Runs bash script `run-default-bluesky-0MQ-proxy.sh` in usr bin.
   - User: xf07id1
+
+### To start a service
+`dzdo systemctl start <NAME>`, where `<NAME>` is the service from the above list. 
