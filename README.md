@@ -1,7 +1,8 @@
 # System Services at SST
 
 ### Installing or updating services
-`dzdo cp <systemd-unit-service-file> && dzdo systemctl enable ...`
+Currently copying to `/etc` requires root access.
+`dzdo cp <systemd-unit-service-file>  /etc/systemd/system && dzdo systemctl enable ...`
 
 ### Current active services
 - bluesky-suitcase-worker:
