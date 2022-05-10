@@ -1,0 +1,18 @@
+[Unit]
+Description=Bluesky suitcase worker service
+StartLimitIntervalSec=1400
+StartLimitBurst=7200
+
+[Service]
+User=softioc-sst
+Group=softioc-sst
+SyslogIdentifier=bluesky-suitcase-worker
+TimeoutStartSec=2
+Restart=always
+# Restart=on-failure
+RestartSec=5s
+# WorkingDirectory=<something>
+ExecStart=/opt/conda_envs/analysis-2019-3.0-rsoxs/bin/python /nsls2/data/sst/rsoxs/shared/config/bluesky/collection_packages/sst-workers/suitcase_worker_nsls2data.py
+
+[Install]
+WantedBy=multi-user.target
