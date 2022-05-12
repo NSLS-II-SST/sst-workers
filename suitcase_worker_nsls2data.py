@@ -54,7 +54,10 @@ def factory(name, start_doc):
                                                        # '{event[data][en_energy]:.2f}eV-'
                                                        ),
                                           directory=USERDIR)
-    name, doc = SWserializer(name, start_doc)
+    try:
+        name, doc = SWserializer(name, start_doc)
+    except Exception:
+        os._exit(1)
     serializercsv = csv.Serializer(file_prefix=('{start[cycle]}/'
                                                 '{start[proposal_id]}-{start[institution]}/auto/'
                                                 '{start[project_name]}/'
@@ -71,17 +74,27 @@ def factory(name, start_doc):
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
-        SWserializer(swname, swdoc)
+        try:
+            SWserializer(swname, swdoc)
+        except Exception:
+            os._exit(1)
 
     def fill_subtract_and_serialize_saxs(swname, swdoc):
         swname, swdoc = SAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = SAXS_subtractor(swname, swdoc)
-        SWserializer(swname, swdoc)
+        try:
+            SWserializer(swname, swdoc)
+        except Exception:
+            os._exit(1)
+
 
     def fill_subtract_and_serialize_waxs(swname, swdoc):
         swname, swdoc = WAXS_sync_subtractor(swname, swdoc)
         swname, swdoc = WAXS_subtractor(swname, swdoc)
-        SWserializer(swname, swdoc)
+        try:
+            SWserializer(swname, swdoc)
+        except Exception:
+            os._exit(1)
 
     def subfactory(dname, descriptor_doc):
         dname, ddoc = dname, descriptor_doc
@@ -92,22 +105,42 @@ def factory(name, start_doc):
                 WAXS_sync_subtractor(name, doc)
                 dname, ddoc = SAXS_sync_subtractor(dname, ddoc)
                 dname, ddoc = WAXS_sync_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                try:
+                    SWserializer(dname, ddoc)
+                except Exception:
+                    os._exit(1)
+
                 returnlist.append(fill_subtract_and_serialize)
             elif 'Small Angle CCD Detector' in start_doc['detectors']:
                 name, doc = SAXS_subtractor('start', start_doc)
                 dname, ddoc = SAXS_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                try:
+                    SWserializer(dname, ddoc)
+                except Exception:
+                    os._exit(1)
+
                 returnlist.append(fill_subtract_and_serialize_saxs)
             elif 'Wide Angle CCD Detector' in start_doc['detectors']:
                 name, doc = WAXS_subtractor('start', start_doc)
                 dname, ddoc = WAXS_subtractor(dname, ddoc)
-                SWserializer(dname, ddoc)
+                try:
+                    SWserializer(dname, ddoc)
+                except Exception:
+                    os._exit(1)
+
                 returnlist.append(fill_subtract_and_serialize_waxs)
 
             if descriptor_doc['name'] == 'primary':
-                serializercsv('start', start_doc)
-                serializercsv('descriptor', descriptor_doc)
+                try:
+                    serializercsv('start', start_doc)
+                except Exception:
+                    os._exit(1)
+
+                try:
+                    serializercsv('descriptor', descriptor_doc)
+                except Exception:
+                    os._exit(1)
+
                 returnlist.append(serializercsv)
             return returnlist
         elif 'baseline' in descriptor_doc['name'] or 'monitor' in descriptor_doc['name']:
@@ -127,8 +160,19 @@ def factory(name, start_doc):
                                         flush=True,
                                         line_terminator='\n')
             print('testing baseline printing', descriptor_doc['name'])
-            serializer('start', start_doc)
-            serializer('descriptor', descriptor_doc)
+
+            try:
+                serializer('start', start_doc)
+            except Exception:
+                os._exit(1)
+
+
+            try:
+                serializer('descriptor', descriptor_doc)
+            except Exception:
+                os._exit(1)
+
+
             return [serializer]
         else:
             return []
